@@ -1,0 +1,389 @@
+/* ============================================================
+   App shell — sidebar navigation + sticky header + main content
+   ============================================================ */
+
+/* Outer flex container that fills the viewport */
+.app {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+/* ============================================================
+   Sidebar
+   Desktop: fixed-width panel on the left.
+   Mobile:  fixed bottom navigation bar (≤768px).
+   ============================================================ */
+
+.sidebar {
+  width: 248px;
+  background: var(--ink);
+  color: #fff;
+  padding: 24px 18px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.sidebar__logo {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 6px 8px 28px;
+}
+
+.sidebar__logo-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-family: 'Space Grotesk', sans-serif;
+  flex-shrink: 0;
+}
+
+.sidebar__logo-name {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+/* Navigation buttons */
+.sidebar__nav-btn {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  border: none;
+  cursor: pointer;
+  padding: 12px 14px;
+  border-radius: 11px;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  background: transparent;
+  color: #aab2c8;
+}
+
+.sidebar__nav-btn.active {
+  background: var(--blue);
+  color: #fff;
+}
+
+/* Mini budget progress widget pinned to the bottom of the sidebar */
+.sidebar__widget {
+  margin-top: auto;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.sidebar__widget-label {
+  font-size: 12px;
+  color: #aab2c8;
+  font-weight: 600;
+}
+
+.sidebar__widget-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  margin-top: 3px;
+}
+
+.sidebar__widget-track {
+  height: 7px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  margin-top: 9px;
+  overflow: hidden;
+}
+
+.sidebar__widget-fill {
+  height: 100%;
+  background: var(--blue);
+  /* width set inline — depends on budgetUsedPct */
+}
+
+.sidebar__widget-details {
+  font-size: 12px;
+  color: #aab2c8;
+  margin-top: 8px;
+}
+
+/* ============================================================
+   Main content (header + page area)
+   ============================================================ */
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* prevents overflow when grid content is wide */
+}
+
+/* Sticky header — stays visible when the user scrolls the page */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 32px;
+  border-bottom: 1px solid #e8ebf2;
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  gap: 12px;
+}
+
+.app-header__title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 23px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.app-header__subtitle {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Right-side controls: currency switcher, add button, user avatar */
+.app-header__controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+/* Currency switcher: € / $ / £ pill buttons */
+.currency-switcher {
+  display: flex;
+  gap: 2px;
+  background: #f0f2f8;
+  padding: 4px;
+  border-radius: 11px;
+}
+
+.currency-btn {
+  border: none;
+  cursor: pointer;
+  padding: 7px 13px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.currency-btn.active {
+  background: var(--ink);
+  color: #fff;
+}
+
+/* Blue "Add transaction" button */
+.add-txn-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  padding: 11px 18px;
+  border-radius: 11px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.add-txn-btn__plus {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* User avatar circle + logout */
+.user-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.logout-btn {
+  background: none;
+  border: 1px solid #e4e8f0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Scrollable page content area */
+.app-content {
+  flex: 1;
+  padding: 28px 32px;
+}
+
+/* ============================================================
+   Responsive — Tablet (≤1024px)
+   Sidebar narrows; header and content padding tighten.
+   ============================================================ */
+
+@media (max-width: 1024px) {
+
+  .sidebar {
+    width: 200px;
+    padding: 20px 12px;
+  }
+
+  .app-header {
+    padding: 14px 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .app-content {
+    padding: 20px;
+  }
+}
+
+/* ============================================================
+   Responsive — Small tablets (≤860px)
+   Sidebar narrows further; subtitle hidden to save vertical space.
+   ============================================================ */
+
+@media (max-width: 860px) {
+
+  .sidebar {
+    width: 172px;
+    padding: 18px 10px;
+  }
+
+  .sidebar__nav-btn {
+    font-size: 13px;
+    padding: 10px 10px;
+  }
+
+  .app-header__subtitle {
+    display: none;
+  }
+
+  .app-content {
+    padding: 16px;
+  }
+}
+
+/* ============================================================
+   Responsive — Mobile (≤768px)
+   Sidebar collapses into a fixed bottom navigation bar.
+   ============================================================ */
+
+@media (max-width: 768px) {
+
+  /* Sidebar moves to a fixed bar at the bottom of the screen */
+  .sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 60px;
+    flex-direction: row;
+    padding: 0;
+    z-index: 50;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  /* Logo and budget widget don't fit in the bottom bar */
+  .sidebar__logo,
+  .sidebar__widget {
+    display: none;
+  }
+
+  .sidebar__nav-btn {
+    flex: 1;
+    justify-content: center;
+    text-align: center;
+    border-radius: 0;
+    margin-bottom: 0;
+    padding: 10px 4px;
+    font-size: 12px;
+  }
+
+  /* Header becomes more compact */
+  .app-header {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+  }
+
+  .app-header__title { font-size: 18px; }
+
+  .app-header__controls {
+    gap: 8px;
+  }
+
+  /* Hide the currency switcher to save space — accessible via settings in a full app */
+  .currency-switcher {
+    display: none;
+  }
+
+  /* Shrink the add button on small screens */
+  .add-txn-btn {
+    padding: 9px 14px;
+    font-size: 13px;
+  }
+
+  .logout-btn {
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+
+  /* Page content gets side padding cut, and bottom padding for the nav bar */
+  .app-content {
+    padding: 16px;
+    padding-bottom: 76px;
+  }
+}
+
+/* ============================================================
+   Responsive — Small phones (≤480px)
+   Hide the "Add transaction" text, keep just the + icon.
+   ============================================================ */
+
+@media (max-width: 480px) {
+  .add-txn-btn__text {
+    display: none;
+  }
+
+  .add-txn-btn {
+    padding: 10px 14px;
+  }
+
+  /* Logout button is redundant at this size — avatar tap can handle it */
+  .logout-btn {
+    display: none;
+  }
+
+  .app-header__title { font-size: 16px; }
+}
