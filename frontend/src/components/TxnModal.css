@@ -1,0 +1,223 @@
+/* ============================================================
+   TxnModal — add / edit transaction dialog
+   Desktop: centred overlay.
+   Mobile:  slides up from the bottom of the screen.
+   ============================================================ */
+
+/* ---- Dimmed full-screen backdrop ---- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 20, 36, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+/* ---- White dialog box ---- */
+.modal-box {
+  background: #fff;
+  border-radius: 20px;
+  padding: 28px;
+  width: 100%;
+  max-width: 430px;
+  max-height: 92vh;
+  overflow: auto;
+}
+
+/* ---- Dialog header ---- */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.modal-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 21px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--muted);
+  line-height: 1;
+  padding: 4px;
+}
+
+/* ---- Expense / Income type toggle ---- */
+.txn-type-btns {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+/* Base state: unselected */
+.txn-type-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 15px;
+  border: 2px solid #e4e8f0;
+  background: #fff;
+  color: var(--muted);
+}
+
+/* Active state per type */
+.txn-type-btn--expense.active {
+  border-color: var(--red);
+  background: #fdeceb;
+  color: var(--red);
+}
+
+.txn-type-btn--income.active {
+  border-color: var(--green);
+  background: #e9f7f1;
+  color: var(--green);
+}
+
+/* ---- Shared form field styles ---- */
+.txn-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 7px;
+}
+
+.txn-label__optional {
+  color: #9aa2b5;
+  font-weight: 500;
+}
+
+.txn-input,
+.txn-select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #e4e8f0;
+  border-radius: 11px;
+  font-size: 15px;
+  margin-bottom: 16px;
+  outline: none;
+}
+
+.txn-select {
+  background: #fff;
+}
+
+.txn-input--last {
+  margin-bottom: 18px;
+}
+
+/* ---- Amount field with currency symbol prefix ---- */
+.txn-amount-wrap {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+/* Currency symbol floated inside the left edge of the input */
+.txn-amount-symbol {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.txn-amount-input {
+  width: 100%;
+  padding: 12px 14px 12px 32px;
+  border: 1.5px solid #e4e8f0;
+  border-radius: 11px;
+  font-size: 15px;
+  outline: none;
+}
+
+/* ---- Validation error banner ---- */
+.txn-error {
+  background: #fdeceb;
+  color: var(--red);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+/* ---- Footer action buttons ---- */
+.txn-footer {
+  display: flex;
+  gap: 10px;
+}
+
+.txn-footer__delete {
+  padding: 13px 16px;
+  background: #fff;
+  border: 1.5px solid #f6c9c6;
+  color: var(--red);
+  border-radius: 11px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.txn-footer__cancel {
+  flex: 1;
+  padding: 13px;
+  background: #f0f2f8;
+  border: none;
+  color: var(--muted);
+  border-radius: 11px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.txn-footer__save {
+  flex: 1;
+  padding: 13px;
+  background: var(--blue);
+  border: none;
+  color: #fff;
+  border-radius: 11px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+/* ============================================================
+   Responsive — Mobile (≤768px)
+   Modal slides up from the bottom like a sheet.
+   ============================================================ */
+
+@media (max-width: 768px) {
+  /* Anchor the overlay to the bottom edge */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  /* Sheet takes full width, rounded only at the top */
+  .modal-box {
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    max-height: 88vh;
+    padding: 24px 20px;
+  }
+
+  /* Give the close button a larger tap target */
+  .modal-close {
+    font-size: 28px;
+    padding: 8px;
+  }
+}
