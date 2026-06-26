@@ -1,0 +1,47 @@
+/* ============================================================
+   Global reset, base styles, and CSS custom properties
+   ============================================================ */
+
+/* Colour palette — mirrors the C object in data.js so static
+   CSS rules can reference the same tokens. Dynamic values that
+   depend on runtime data still use JS inline styles. */
+:root {
+  --ink:    #0d1424;
+  --blue:   #2f5fd0;
+  --green:  #1f9e6f;
+  --red:    #d6453f;
+  --muted:  #5b6478;
+  --line:   #eef0f6;
+  --bg:     #f4f6fb;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+input,
+button,
+select,
+textarea {
+  font-family: inherit;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--blue) !important;
+  outline: none;
+}
