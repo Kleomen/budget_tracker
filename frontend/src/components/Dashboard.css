@@ -1,0 +1,503 @@
+/* ============================================================
+   Dashboard — KPI cards, donut chart, trend bars, budget summary
+   ============================================================ */
+
+/* ---- Top bar: month label + layout switcher ---- */
+.dash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dash-month {
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* Layout switcher: Balanced / Charts / Compact */
+.layout-switcher {
+  display: flex;
+  gap: 2px;
+  background: #e9ecf4;
+  padding: 4px;
+  border-radius: 11px;
+}
+
+.layout-btn {
+  border: none;
+  cursor: pointer;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.layout-btn.active {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+/* 12-column responsive grid.
+   Individual cards set their own span/order via inline `style` (dynamic
+   layout from layoutStyles()). On mobile those are overridden below. */
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+/* ============================================================
+   KPI cards (Spent / Income / Net / Budget used)
+   ============================================================ */
+
+.kpi-title {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.kpi-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(22px, 2.5vw, 29px);
+  font-weight: 700;
+  margin-top: 10px;
+  letter-spacing: -0.02em;
+}
+
+/* Colour modifiers applied conditionally in JSX */
+.kpi-value--green { color: var(--green); }
+.kpi-value--red   { color: var(--red);   }
+
+.kpi-subtitle {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+
+.kpi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+/* Red badge shown when categories are over budget */
+.over-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--red);
+  background: #fdeceb;
+  padding: 2px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* Thin blue progress bar inside the "Budget used" KPI */
+.kpi-progress-track {
+  height: 7px;
+  background: var(--line);
+  border-radius: 5px;
+  margin-top: 9px;
+  overflow: hidden;
+}
+
+.kpi-progress-fill {
+  height: 100%;
+  background: var(--blue);
+  border-radius: 5px;
+  /* width is set inline — depends on budgetUsedPct at runtime */
+}
+
+/* ============================================================
+   Donut chart (Spending by category)
+   ============================================================ */
+
+.donut-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.donut-body {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  margin-top: 18px;
+}
+
+/* Relative container so the center label can be absolutely positioned */
+.donut-chart {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  flex-shrink: 0;
+}
+
+.donut-circle {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  /* background (conic-gradient) set inline — built from live transaction data */
+}
+
+/* White circle punched out in the middle of the donut */
+.donut-center {
+  position: absolute;
+  inset: 36px;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.donut-center__label {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.donut-center__value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* Legend rows (category dot + name + % + amount) — 2-column grid to fill width */
+.donut-legend {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 32px;
+  row-gap: 0;
+  align-content: start;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+/* Coloured square dot — background set inline (category colour) */
+.legend-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legend-name   { font-size: 14px; font-weight: 600; flex: 1; }
+.legend-pct    { font-size: 13px; color: var(--muted); width: 40px; text-align: right; }
+.legend-amount { font-size: 14px; font-weight: 700; font-family: 'Space Grotesk', sans-serif; min-width: 78px; text-align: right; }
+
+/* ============================================================
+   Trend chart (Income vs Expense bar chart)
+   ============================================================ */
+
+.trend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.trend-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.trend-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.trend-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.trend-legend__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.trend-legend__dot--income  { background: var(--green); }
+.trend-legend__dot--expense { background: var(--blue);  }
+
+/* Bar chart area */
+.trend-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  height: 220px;
+  margin-top: 22px;
+}
+
+.trend-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.trend-col__pair {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}
+
+.trend-bar {
+  width: clamp(16px, 2.5vw, 36px);
+  border-radius: 4px 4px 0 0;
+  min-height: 3px;
+  /* height is set inline — percentage of the tallest month's value */
+}
+
+.trend-bar--income  { background: var(--green); }
+.trend-bar--expense { background: var(--blue);  }
+
+.trend-col__label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* ============================================================
+   Budget vs Actual summary (mini progress bars per category)
+   ============================================================ */
+
+.budget-card-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.budget-row {
+  margin-bottom: 15px;
+}
+
+.budget-row__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.budget-row__left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Coloured dot — background set inline (category colour) */
+.budget-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.budget-name    { font-size: 14px; font-weight: 600; }
+.budget-amounts { font-size: 13px; font-weight: 600; color: var(--muted); }
+
+/* "OVER" pill badge */
+.over-tag {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--red);
+  background: #fdeceb;
+  padding: 2px 7px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* .budget-bar-track / .budget-bar-fill now live in BudgetBar.css (shared component). */
+
+/* ============================================================
+   Recent activity list
+   ============================================================ */
+
+.recent-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.recent-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f2f4fa;
+  cursor: pointer;
+}
+
+/* Coloured dot — background set inline (category colour) */
+.recent-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.recent-info           { flex: 1; min-width: 0; }
+.recent-info__title    { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.recent-info__sub      { font-size: 12px; color: var(--muted); }
+
+.recent-amount { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 15px; white-space: nowrap; }
+.recent-amount--income  { color: var(--green); }
+.recent-amount--expense { color: var(--ink);   }
+
+/* ============================================================
+   Responsive — Tablet (≤1024px)
+   KPIs go 2-per-row; donut circle slightly smaller.
+   ============================================================ */
+
+@media (max-width: 1024px) {
+
+  /* KPI cards: 2 per row instead of 4 */
+  .dash-kpi {
+    grid-column: span 6 !important;
+  }
+
+  .donut-chart {
+    width: 170px;
+    height: 170px;
+  }
+
+  .donut-center {
+    inset: 30px;
+  }
+
+  .trend-bars {
+    height: 190px;
+  }
+}
+
+/* ============================================================
+   Responsive — Mobile (≤768px)
+   All grid cards go full-width, stacked vertically.
+   The inline gridColumn/order from layoutStyles() are overridden here.
+   ============================================================ */
+
+@media (max-width: 768px) {
+
+  /* Override all inline gridColumn / order values set by layoutStyles() */
+  .dash-grid > * {
+    grid-column: 1 / -1 !important;
+    order: initial !important;
+  }
+
+  /* Layout switcher is meaningless when everything stacks */
+  .layout-switcher {
+    display: none;
+  }
+
+  .dash-grid {
+    gap: 12px;
+  }
+
+  .kpi-value {
+    font-size: 24px;
+  }
+
+  /* Trend bars shrink to fit a narrow screen */
+  .trend-bars {
+    height: 140px;
+    gap: 6px;
+  }
+
+  .trend-bar {
+    width: clamp(10px, 4vw, 18px);
+  }
+
+  /* Donut stacks chart above legend on mobile */
+  .donut-body {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .donut-chart {
+    width: 148px;
+    height: 148px;
+  }
+
+  .donut-center {
+    inset: 27px;
+  }
+
+  /* Legend collapses to single column on mobile */
+  .donut-legend {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .legend-amount {
+    min-width: unset;
+  }
+}
+
+/* ============================================================
+   Responsive — Small phones (≤480px)
+   ============================================================ */
+
+@media (max-width: 480px) {
+
+  .dash-grid {
+    gap: 10px;
+  }
+
+  .kpi-value {
+    font-size: 20px;
+  }
+
+  .trend-bars {
+    height: 110px;
+    gap: 4px;
+  }
+
+  .donut-chart {
+    width: 130px;
+    height: 130px;
+  }
+
+  .donut-center {
+    inset: 23px;
+  }
+
+  .donut-center__value {
+    font-size: 14px;
+  }
+
+  .legend-name   { font-size: 13px; }
+  .legend-amount { font-size: 13px; }
+}
