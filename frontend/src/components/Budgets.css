@@ -1,0 +1,282 @@
+/* ============================================================
+   Budgets page — limit editor (left) + summary sidebar (right)
+   Desktop: 8+4 column split.
+   Mobile:  stacked (editor on top, sidebar below).
+   ============================================================ */
+
+/* 12-column grid; left card spans 8, sidebar spans 4 */
+.budgets-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+/* ============================================================
+   Left panel — per-category limit editor
+   ============================================================ */
+
+.budget-list {
+  grid-column: span 8;
+  padding: 24px;
+}
+
+.budget-list__title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.budget-list__subtitle {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 3px;
+  margin-bottom: 8px;
+}
+
+/* ---- Individual budget row ---- */
+.budget-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f2f4fa;
+}
+
+/* Coloured dot — background set inline (category colour) */
+.budget-item__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.budget-item__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.budget-item__name-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 7px;
+  gap: 8px;
+}
+
+.budget-item__name-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.budget-item__name { font-size: 15px; font-weight: 600; }
+
+/* Red "OVER" pill */
+.budget-item__over-tag {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--red);
+  background: #fdeceb;
+  padding: 2px 7px;
+  border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.budget-item__remaining          { font-size: 13px; font-weight: 700; white-space: nowrap; }
+.budget-item__remaining--ok      { color: var(--muted); }
+.budget-item__remaining--over    { color: var(--red);   }
+
+/* Progress bar styles (.budget-bar-track / .budget-bar-fill) live in
+   BudgetBar.css, shared with the Dashboard's budget card. */
+
+.budget-item__details {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* Inline number input for editing the budget limit */
+.budget-item__input-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.budget-item__currency { color: var(--muted); font-weight: 700; }
+
+.budget-item__input {
+  width: 88px;
+  padding: 9px 11px;
+  border: 1.5px solid #e4e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  text-align: right;
+  outline: none;
+}
+
+/* ============================================================
+   Right sidebar — summary & over-budget alert
+   ============================================================ */
+
+.budget-sidebar {
+  grid-column: span 4;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Dark summary card */
+.budget-summary {
+  background: var(--ink);
+  color: #fff;
+  border-radius: 18px;
+  padding: 24px;
+}
+
+.budget-summary__label {
+  font-size: 13px;
+  color: #aab2c8;
+  font-weight: 600;
+}
+
+.budget-summary__value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(26px, 4vw, 34px);
+  font-weight: 700;
+  margin-top: 4px;
+  letter-spacing: -0.02em;
+}
+
+.budget-summary__bar-track {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 5px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.budget-summary__bar-fill {
+  height: 100%;
+  background: var(--blue);
+  border-radius: 5px;
+  /* width set inline — depends on budgetUsedPct */
+}
+
+.budget-summary__details {
+  font-size: 13px;
+  color: #aab2c8;
+  margin-top: 10px;
+}
+
+/* Red alert shown when one or more categories are over budget */
+.budget-over-alert {
+  background: #fdeceb;
+  border: 1px solid #f6c9c6;
+  border-radius: 18px;
+  padding: 20px;
+}
+
+.budget-over-alert__row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.budget-over-alert__icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.budget-over-alert__title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--red);
+}
+
+.budget-over-alert__text {
+  font-size: 13px;
+  color: #a23a33;
+  margin-top: 9px;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   Responsive — Tablet (≤1024px)
+   Sidebar takes a bit more space relative to the list.
+   ============================================================ */
+
+@media (max-width: 1024px) {
+  .budget-list    { grid-column: span 7; }
+  .budget-sidebar { grid-column: span 5; }
+
+  .budget-item__input { width: 80px; }
+}
+
+/* ============================================================
+   Responsive — Mobile (≤768px)
+   Both panels go full width and stack vertically.
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .budgets-grid {
+    gap: 14px;
+  }
+
+  /* Both panels fill the full width */
+  .budget-list    { grid-column: span 12; padding: 16px; }
+  .budget-sidebar { grid-column: span 12; }
+
+  /* Move the sidebar above the list so the summary is visible first */
+  .budget-sidebar { order: -1; }
+
+  /* Sidebar layout becomes a row on mobile */
+  .budget-sidebar {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .budget-summary { flex: 1; }
+
+  /* Over alert hides on very small screens — user sees the summary bar */
+  .budget-over-alert { display: none; }
+
+  /* Shrink input on mobile */
+  .budget-item__input {
+    width: 72px;
+    padding: 8px 8px;
+    font-size: 13px;
+  }
+
+  .budget-item {
+    gap: 10px;
+    padding: 12px 0;
+  }
+}
+
+/* ============================================================
+   Responsive — Small phones (≤480px)
+   ============================================================ */
+
+@media (max-width: 480px) {
+  /* Sidebar alert is already hidden; summary stacks */
+  .budget-sidebar {
+    flex-direction: column;
+  }
+
+  /* Details text gets too cramped */
+  .budget-item__details { display: none; }
+}
