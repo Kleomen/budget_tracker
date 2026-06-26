@@ -1,0 +1,17 @@
+/* ============================================================
+   BudgetBar — shared category progress bar (track + coloured fill).
+   The fill's width and colour are set inline (they depend on runtime data).
+   ============================================================ */
+
+.budget-bar-track {
+  height: 8px;
+  background: var(--line);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.budget-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  /* background (red when over, category colour otherwise) and width set inline */
+}

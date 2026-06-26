@@ -1,0 +1,18 @@
+/* ============================================================
+   Card — white rounded surface used across all dashboard widgets
+   ============================================================ */
+
+.card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 22px;
+  border: 1px solid var(--line);
+}
+
+/* Tighter padding on mobile so cards don't feel cramped */
+@media (max-width: 768px) {
+  .card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+}
