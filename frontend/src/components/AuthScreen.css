@@ -1,0 +1,218 @@
+/* ============================================================
+   AuthScreen — login / signup page
+   Desktop: two-panel layout (brand left, form right).
+   Mobile:  stacked layout (compact brand header, full-width form).
+   ============================================================ */
+
+/* ---- Outer shell ---- */
+.auth-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ---- Left brand panel (dark) ---- */
+.auth-brand {
+  flex: 1;
+  background: var(--ink);
+  color: #fff;
+  padding: 56px 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.auth-brand__logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Blue "B" badge */
+.auth-brand__logo-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.auth-brand__logo-name {
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.auth-brand__headline {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  max-width: 11ch;
+}
+
+.auth-brand__subtitle {
+  color: #aab2c8;
+  font-size: 16px;
+  max-width: 36ch;
+  margin-top: 20px;
+  line-height: 1.55;
+}
+
+.auth-brand__footer {
+  font-size: 13px;
+  color: #5b6478;
+}
+
+/* ---- Right form panel (white) ---- */
+.auth-form-panel {
+  width: 540px;
+  max-width: 48%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+}
+
+.auth-form {
+  width: 100%;
+  max-width: 368px;
+}
+
+.auth-form__title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(22px, 3vw, 29px);
+  font-weight: 700;
+  margin: 0 0 7px;
+  letter-spacing: -0.02em;
+}
+
+.auth-form__subtitle {
+  margin: 0 0 28px;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+/* ---- Form controls ---- */
+.auth-form__label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 7px;
+}
+
+.auth-form__input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #e4e8f0;
+  border-radius: 11px;
+  font-size: 15px;
+  margin-bottom: 14px;
+  outline: none;
+}
+
+.auth-form__input--last {
+  margin-bottom: 18px;
+}
+
+.auth-form__error {
+  background: #fdeceb;
+  color: var(--red);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.auth-form__submit {
+  width: 100%;
+  padding: 14px;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 11px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ---- Sign-in / Sign-up toggle ---- */
+.auth-form__toggle {
+  text-align: center;
+  margin-top: 22px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.auth-form__toggle-btn {
+  background: none;
+  border: none;
+  color: var(--blue);
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* ============================================================
+   Responsive — Tablet (≤1024px)
+   Narrow the brand panel a bit.
+   ============================================================ */
+
+@media (max-width: 1024px) {
+  .auth-brand {
+    padding: 40px;
+  }
+
+  .auth-form-panel {
+    padding: 40px 32px;
+  }
+}
+
+/* ============================================================
+   Responsive — Mobile (≤768px)
+   Stack layout: compact brand strip on top, full-width form below.
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .auth-layout {
+    flex-direction: column;
+  }
+
+  /* Brand panel becomes a compact header strip */
+  .auth-brand {
+    flex: none;
+    padding: 28px 24px 24px;
+    gap: 16px;
+    justify-content: flex-start;
+  }
+
+  .auth-brand__headline {
+    font-size: 26px;
+    max-width: none;
+  }
+
+  /* Subtitle takes too much space on a small header */
+  .auth-brand__subtitle,
+  .auth-brand__footer {
+    display: none;
+  }
+
+  /* Form panel goes full width below the brand strip */
+  .auth-form-panel {
+    width: 100%;
+    max-width: 100%;
+    padding: 28px 24px 40px;
+    align-items: flex-start;
+  }
+
+  .auth-form {
+    max-width: 100%;
+  }
+}
