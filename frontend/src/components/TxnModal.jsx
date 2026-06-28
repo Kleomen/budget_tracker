@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { EXPENSE_CATS, INCOME_CATS, LATEST_DATE, sym } from '../data.js'
+import { EXPENSE_CATS, INCOME_CATS, LATEST_DATE, sym, convert, toBase } from '../data.js'
 import './TxnModal.css'
 
 /* ============================================================
@@ -16,6 +16,9 @@ import './TxnModal.css'
    totals instead of silently landing in a month nothing else counts. */
 const DEFAULT_DATE = LATEST_DATE
 
+/* Round to 2 decimals so a converted amount shows cleanly in the input. */
+const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100
+
 export default function TxnModal({ initial, currency, onClose, onSave, onDelete }) {
   const editing = !!initial.id  // true if we were given an existing transaction
 
@@ -23,7 +26,9 @@ export default function TxnModal({ initial, currency, onClose, onSave, onDelete 
      `initial` when editing, or from sensible defaults when adding. */
   const [form, setForm] = useState({
     type:        initial.type        || 'expense',
-    amount:      initial.amount != null ? String(initial.amount) : '',
+    /* Stored amounts are in base currency (EUR); show them in the currency
+       the user is currently viewing so editing matches what's on screen. */
+    amount:      initial.amount != null ? String(round2(convert(initial.amount, currency))) : '',
     category:    initial.category    || 'Groceries',
     date:        initial.date        || DEFAULT_DATE,
     description: initial.description || '',
@@ -51,7 +56,9 @@ export default function TxnModal({ initial, currency, onClose, onSave, onDelete 
     const amt = parseFloat(form.amount)
     if (!amt || amt <= 0) return setError('Enter an amount greater than 0.')
     if (!form.date)       return setError('Please choose a date.')
-    onSave({ id: initial.id, amount: amt, type: form.type, category: form.category, date: form.date, description: form.description })
+    /* The user typed the amount in the display currency — convert it back to
+       base (EUR) so all stored amounts stay in one currency. */
+    onSave({ id: initial.id, amount: toBase(amt, currency), type: form.type, category: form.category, date: form.date, description: form.description })
   }
 
   return (

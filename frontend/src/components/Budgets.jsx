@@ -1,4 +1,4 @@
-import { fmt, sym, monthName, CURRENT_MONTH } from '../data.js'
+import { fmt, sym, monthName, CURRENT_MONTH, convert, toBase } from '../data.js'
 import Card from './Card.jsx'
 import BudgetBar from './BudgetBar.jsx'
 import './Budgets.css'
@@ -12,12 +12,17 @@ export default function Budgets({ metrics, budgets, setBudgets, currency }) {
   const f = (n) => fmt(n, currency)
   const { budgetStatus, totalBudget, totalSpent, budgetUsedPct, overCount } = metrics
 
-  /* Update one category's limit; empty string is allowed so the user
-     can clear the field before typing a new number */
+  /* Limits are STORED in base currency (EUR) but edited in the currency the
+     user is viewing, so convert each direction. round2 keeps the displayed
+     value clean. Empty string is allowed so the user can clear the field
+     before typing a new number. */
+  const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100
+  const limitInCurrency = (name) =>
+    budgets[name] === '' || budgets[name] == null ? '' : round2(convert(budgets[name], currency))
   const updateLimit = (name, raw) =>
     setBudgets((prev) => ({
       ...prev,
-      [name]: raw === '' ? '' : Number(raw),
+      [name]: raw === '' ? '' : toBase(Number(raw), currency),
     }))
 
   return (
@@ -68,7 +73,7 @@ export default function Budgets({ metrics, budgets, setBudgets, currency }) {
               <input
                 type="number"
                 className="budget-item__input"
-                value={budgets[b.name] ?? ''}
+                value={limitInCurrency(b.name)}
                 onChange={(e) => updateLimit(b.name, e.target.value)}
               />
             </div>

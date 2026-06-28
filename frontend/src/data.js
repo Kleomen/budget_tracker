@@ -96,6 +96,42 @@ export const SEED_TXNS = [
 /* Which symbol to show for each currency code. */
 export const CUR_SYMBOL = { EUR: '€', USD: '$', GBP: '£' }
 
+/* The currencies the app can display. EUR is the base everything is stored in. */
+export const CURRENCIES = ['EUR', 'USD', 'GBP']
+
+/* Fallback exchange rates relative to EUR — used until (or if) the live rates
+   load. Rates move daily, so these are only an offline safety net. */
+export const FALLBACK_RATES = { EUR: 1, USD: 1.08, GBP: 0.85 }
+
+/* The rates actually used for conversion. Starts at the fallback and is
+   replaced by setRates() once live rates arrive from the API. */
+let activeRates = { ...FALLBACK_RATES }
+
+/* Swap in a new set of rates (e.g. freshly fetched). EUR is pinned to 1 since
+   every stored amount is already in EUR. */
+export const setRates = (rates) => { activeRates = { ...activeRates, ...rates, EUR: 1 } }
+
+/* Exchange rate for a code, falling back to 1 (EUR) for anything unknown. */
+export const rate = (cur) => activeRates[cur] || 1
+
+/* Fetch current EUR-based rates from Frankfurter (free, no key, ECB data).
+   Returns a rates object like { USD: 1.08, GBP: 0.85 }; throws on failure
+   so the caller can fall back to FALLBACK_RATES. */
+export const fetchRates = async () => {
+  const symbols = CURRENCIES.filter((c) => c !== 'EUR').join(',')
+  const res = await fetch(`https://api.frankfurter.dev/v1/latest?base=EUR&symbols=${symbols}`)
+  if (!res.ok) throw new Error(`rates request failed: HTTP ${res.status}`)
+  const data = await res.json()
+  return data.rates
+}
+
+/* Convert a base-currency (EUR) amount into the given display currency. */
+export const convert = (n, cur) => (Number(n) || 0) * rate(cur)
+
+/* Convert an amount typed in the given display currency back to base (EUR),
+   so everything stays stored in one currency regardless of what's on screen. */
+export const toBase = (n, cur) => (Number(n) || 0) / rate(cur)
+
 /* The most recent transaction date in the data, e.g. "2026-06-23".
    We derive it instead of hard-coding so "this month" (below) and the
    default date for new transactions always follow the actual data. */
@@ -111,10 +147,12 @@ export const CURRENT_MONTH = LATEST_DATE.slice(0, 7)
 /* Currency symbol for a code, falling back to € for anything unknown. */
 export const sym = (cur) => CUR_SYMBOL[cur] || '€'
 
-/* Format a number as money, e.g. fmt(1200, 'EUR') -> "€1,200.00".
+/* Format a base-currency (EUR) number as money in the display currency,
+   e.g. fmt(1200, 'USD') -> "$1,296.00". Amounts are stored in EUR and
+   converted here, so switching currency recalculates the actual value.
    Math.abs() drops the sign — callers add their own +/− prefix. */
 export const fmt = (n, cur) =>
-  sym(cur) + Math.abs(Number(n) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  sym(cur) + Math.abs(convert(n, cur)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 /* Format a transaction amount WITH its sign, e.g. fmtSigned(42, 'expense', 'EUR')
    -> "−€42.00", fmtSigned(600, 'income', 'EUR') -> "+€600.00".

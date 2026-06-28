@@ -66,7 +66,7 @@
 
 .kpi-value {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(22px, 2.5vw, 29px);
+  font-size: clamp(22px, 2.2vw, 29px);
   font-weight: 700;
   margin-top: 10px;
   letter-spacing: -0.02em;
@@ -174,8 +174,9 @@
 /* Legend rows (category dot + name + % + amount) — 2-column grid to fill width */
 .donut-legend {
   flex: 1;
+  min-width: 0;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: 32px;
   row-gap: 0;
   align-content: start;
@@ -184,7 +185,8 @@
 .legend-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  min-width: 0;
   margin-bottom: 12px;
 }
 
@@ -196,7 +198,7 @@
   flex-shrink: 0;
 }
 
-.legend-name   { font-size: 14px; font-weight: 600; flex: 1; }
+.legend-name   { font-size: 14px; font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .legend-pct    { font-size: 13px; color: var(--muted); width: 40px; text-align: right; }
 .legend-amount { font-size: 14px; font-weight: 700; font-family: 'Space Grotesk', sans-serif; min-width: 78px; text-align: right; }
 
@@ -271,7 +273,7 @@
 }
 
 .trend-bar {
-  width: clamp(16px, 2.5vw, 36px);
+  width: clamp(16px, 2.2vw, 36px);
   border-radius: 4px 4px 0 0;
   min-height: 3px;
   /* height is set inline — percentage of the tallest month's value */
@@ -395,6 +397,12 @@
 
   .donut-center {
     inset: 30px;
+  }
+
+  /* Donut still sits beside the legend here, so a single legend column
+     leaves enough room and avoids horizontal overflow. */
+  .donut-legend {
+    grid-template-columns: 1fr;
   }
 
   .trend-bars {

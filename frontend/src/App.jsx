@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import {
   SN, SEED_TXNS, DEFAULT_BUDGETS, FILTER_DEFAULTS, CURRENT_MONTH, EXPENSE_CATS,
-  fmt, catColor, monthName, sym, byNewest, lastMonths,
+  fmt, catColor, monthName, sym, byNewest, lastMonths, fetchRates, setRates,
 } from './data.js'
 import AuthScreen   from './components/AuthScreen.jsx'
 import TxnModal     from './components/TxnModal.jsx'
@@ -36,6 +36,18 @@ export default function App({ brand = 'Balancer' }) {
   const [budgets,  setBudgets]  = useState(DEFAULT_BUDGETS)  // spending limit per category
   const [modal,    setModal]    = useState(null)            // add/edit popup: null = closed, {} = add, {…} = edit
   const [filters,  setFilters]  = useState(FILTER_DEFAULTS) // active filters on the Transactions page
+  const [, setRatesV]           = useState(0)               // bumped to re-render once live rates load
+
+  /* Pull current exchange rates once on load. They live in a module variable
+     (used by the fmt/convert helpers), so on success we bump a counter to
+     re-render with the fresh numbers. On failure we keep the static fallback. */
+  useEffect(() => {
+    let alive = true
+    fetchRates()
+      .then((rates) => { if (alive) { setRates(rates); setRatesV((v) => v + 1) } })
+      .catch((err) => console.warn('Using fallback exchange rates:', err))
+    return () => { alive = false }
+  }, [])
 
   /* react-router hooks: navigate() changes the URL, location tells us the current URL. */
   const navigate = useNavigate()
