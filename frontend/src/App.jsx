@@ -1,9 +1,10 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import {
-  SN, SEED_TXNS, DEFAULT_BUDGETS, FILTER_DEFAULTS, CURRENT_MONTH, EXPENSE_CATS,
+  SN, FILTER_DEFAULTS, CURRENT_MONTH, EXPENSE_CATS,
   fmt, catColor, monthName, sym, byNewest, lastMonths, fetchRates, setRates,
 } from './data.js'
+import * as api from './api.js'
 import AuthScreen   from './components/AuthScreen.jsx'
 import TxnModal     from './components/TxnModal.jsx'
 import Dashboard    from './components/Dashboard.jsx'
@@ -29,14 +30,27 @@ const NAV = [
 export default function App({ brand = 'Balancer' }) {
 
   /* ---- All app state lives here ---- */
-  const [user,     setUser]     = useState(null)            // null = logged out; an object = logged in
+  // Restore the signed-in user from a previous session (token is in localStorage)
+  // so a refresh doesn't kick the user back to the login screen.
+  const [user,     setUser]     = useState(() => {
+    const saved = localStorage.getItem('user')
+    return saved && api.getToken() ? JSON.parse(saved) : null
+  })
   const [currency, setCurrency] = useState('EUR')           // which currency symbol to display
   const [layout,   setLayout]   = useState(0)               // dashboard layout preset (0/1/2)
-  const [txns,     setTxns]     = useState(SEED_TXNS)        // the list of transactions
-  const [budgets,  setBudgets]  = useState(DEFAULT_BUDGETS)  // spending limit per category
+  const [txns,     setTxns]     = useState([])              // the list of transactions (loaded from the API)
+  const [budgets,  setBudgets]  = useState({})              // spending limit per category (loaded from the API)
   const [modal,    setModal]    = useState(null)            // add/edit popup: null = closed, {} = add, {…} = edit
   const [filters,  setFilters]  = useState(FILTER_DEFAULTS) // active filters on the Transactions page
   const [, setRatesV]           = useState(0)               // bumped to re-render once live rates load
+
+  /* JSON of the last budgets we successfully saved, so the auto-save effect below
+     can skip redundant PUTs (including the very first load). */
+  const lastBudgetsJson = useRef('{}')
+
+  /* react-router hooks: navigate() changes the URL, location tells us the current URL. */
+  const navigate = useNavigate()
+  const location = useLocation()
 
   /* Pull current exchange rates once on load. They live in a module variable
      (used by the fmt/convert helpers), so on success we bump a counter to
@@ -49,9 +63,69 @@ export default function App({ brand = 'Balancer' }) {
     return () => { alive = false }
   }, [])
 
-  /* react-router hooks: navigate() changes the URL, location tells us the current URL. */
-  const navigate = useNavigate()
-  const location = useLocation()
+  /* ============================================================
+     Auth — login/signup hit the backend, store the token, and remember
+     the user. AuthScreen awaits these, so a thrown error (bad password,
+     email taken) surfaces as a message on the form.
+     ============================================================ */
+  const handleAuth = (fn) => async (creds) => {
+    const { token, user } = await fn(creds)
+    api.setToken(token)
+    localStorage.setItem('user', JSON.stringify(user))
+    setUser(user)
+    navigate('/dashboard')
+  }
+  const handleLogin  = handleAuth(api.login)
+  const handleSignup = handleAuth(api.signup)
+
+  /* Clear everything and return to the login screen. Also used when the server
+     tells us our token is no longer valid. */
+  const handleLogout = () => {
+    api.setToken(null)
+    localStorage.removeItem('user')
+    lastBudgetsJson.current = '{}'
+    setUser(null)
+    setTxns([])
+    setBudgets({})
+    navigate('/login')
+  }
+
+  /* Once signed in, load this user's transactions and budgets from the API.
+     A 401 means the saved token expired/was revoked, so we log out. */
+  useEffect(() => {
+    if (!user) return
+    let alive = true
+    Promise.all([api.getTransactions(), api.getBudgets()])
+      .then(([loadedTxns, loadedBudgets]) => {
+        if (!alive) return
+        setTxns(loadedTxns)
+        setBudgets(loadedBudgets)
+        lastBudgetsJson.current = JSON.stringify(loadedBudgets)
+      })
+      .catch((err) => {
+        if (err.status === 401) handleLogout()
+        else console.warn('Failed to load data:', err)
+      })
+    return () => { alive = false }
+  }, [user])
+
+  /* Auto-save budgets back to the API a beat after they stop changing (the user
+     edits limits with a number input, so we debounce instead of saving per
+     keystroke). Skips when nothing actually changed since the last save. */
+  useEffect(() => {
+    if (!user) return
+    const json = JSON.stringify(budgets)
+    if (json === lastBudgetsJson.current) return
+    const id = setTimeout(() => {
+      api.putBudgets(budgets)
+        .then(() => { lastBudgetsJson.current = json })
+        .catch((err) => {
+          if (err.status === 401) handleLogout()
+          else console.warn('Failed to save budgets:', err)
+        })
+    }, 600)
+    return () => clearTimeout(id)
+  }, [budgets, user])
 
   /* ============================================================
      Metrics are split into two memos so editing a budget limit doesn't
@@ -163,25 +237,31 @@ export default function App({ brand = 'Balancer' }) {
      working from the latest list, never a stale copy.
      ============================================================ */
 
-  /* Save the modal: if the transaction already has an id we're editing
-     (replace it); otherwise it's new (give it a fresh id and add it on top). */
-  const saveTxn = (t) => {
+  /* Save the modal: PUT to update an existing transaction or POST to create a
+     new one, then mirror the server's row into local state. Throws on failure
+     so TxnModal can show the error and keep the popup open. */
+  const saveTxn = async (t) => {
+    const payload = { type: t.type, category: t.category, amount: t.amount, date: t.date, description: t.description }
     if (t.id) {
-      setTxns((prev) => prev.map((x) => (x.id === t.id ? { ...x, ...t } : x)))
+      const updated = await api.updateTransaction(t.id, payload)
+      setTxns((prev) => prev.map((x) => (x.id === updated.id ? updated : x)))
     } else {
-      setTxns((prev) => {
-        // New id = one more than the current highest id in the list.
-        const id = prev.reduce((max, x) => Math.max(max, x.id), 0) + 1
-        return [{ ...t, id }, ...prev]
-      })
+      const created = await api.createTransaction(payload)
+      setTxns((prev) => [created, ...prev])
     }
     setModal(null)  // close the popup
   }
 
-  /* Remove a transaction by id, then close the popup. */
-  const deleteTxn = (id) => {
-    setTxns((prev) => prev.filter((x) => x.id !== id))
-    setModal(null)
+  /* Remove a transaction by id (on the server, then locally), then close the popup. */
+  const deleteTxn = async (id) => {
+    try {
+      await api.deleteTransaction(id)
+      setTxns((prev) => prev.filter((x) => x.id !== id))
+      setModal(null)
+    } catch (err) {
+      if (err.status === 401) handleLogout()
+      else console.warn('Failed to delete transaction:', err)
+    }
   }
 
   /* Open the modal pre-filled with an existing transaction (edit mode). */
@@ -197,8 +277,8 @@ export default function App({ brand = 'Balancer' }) {
   if (!user) {
     return (
       <Routes>
-        <Route path="/login"  element={<AuthScreen mode="login"  brand={brand} onToggle={() => navigate('/signup')} onSubmit={(u) => { setUser(u); navigate('/dashboard') }} />} />
-        <Route path="/signup" element={<AuthScreen mode="signup" brand={brand} onToggle={() => navigate('/login')}  onSubmit={(u) => { setUser(u); navigate('/dashboard') }} />} />
+        <Route path="/login"  element={<AuthScreen mode="login"  brand={brand} onToggle={() => navigate('/signup')} onSubmit={handleLogin} />} />
+        <Route path="/signup" element={<AuthScreen mode="signup" brand={brand} onToggle={() => navigate('/login')}  onSubmit={handleSignup} />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     )
@@ -279,8 +359,8 @@ export default function App({ brand = 'Balancer' }) {
 
             <div className="user-controls">
               <div className="user-avatar">{userInitial}</div>
-              {/* Logging out clears the user and sends them back to /login. */}
-              <button className="logout-btn" onClick={() => { setUser(null); navigate('/login') }}>
+              {/* Logging out clears the token + user and sends them back to /login. */}
+              <button className="logout-btn" onClick={handleLogout}>
                 Log out
               </button>
             </div>

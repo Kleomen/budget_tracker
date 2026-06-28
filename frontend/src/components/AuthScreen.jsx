@@ -4,23 +4,34 @@ import './AuthScreen.css'
 /* ============================================================
    AuthScreen
    Renders either the login or signup form depending on `mode`.
-   All auth logic is simulated — credentials are never sent anywhere.
+   On submit it calls onSubmit (which talks to the backend) and shows
+   any error it throws — e.g. "Invalid email or password".
    ============================================================ */
 export default function AuthScreen({ mode, brand, onToggle, onSubmit }) {
   const [name, setName]         = useState('')
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [error, setError]       = useState('')
+  const [busy, setBusy]         = useState(false) // true while the request is in flight
 
   const isSignup = mode === 'signup' // Determine if we're in signup mode
 
-  /* Basic client-side validation before notifying the parent */
-  const submit = () => {
+  /* Client-side validation, then hand off to the parent. onSubmit returns a
+     promise; if it rejects (bad credentials, email taken, server down) we show
+     the message instead of letting the user through. */
+  const submit = async () => {
     if (isSignup && !name.trim()) return setError('Please enter your name.')
     if (!email.trim())            return setError('Please enter your email.')
     if (!password)                return setError('Please enter a password.')
     setError('')
-    onSubmit({ name, email })
+    setBusy(true)
+    try {
+      await onSubmit({ name, email, password })
+    } catch (err) {
+      setError(err.message || 'Something went wrong. Please try again.')
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -91,8 +102,10 @@ export default function AuthScreen({ mode, brand, onToggle, onSubmit }) {
           {/* Inline validation error */}
           {error && <div className="auth-form__error">{error}</div>}
 
-          <button className="auth-form__submit" onClick={submit}>
-            {isSignup ? 'Create account' : 'Sign in'}
+          <button className="auth-form__submit" onClick={submit} disabled={busy}>
+            {busy
+              ? (isSignup ? 'Creating account…' : 'Signing in…')
+              : (isSignup ? 'Create account' : 'Sign in')}
           </button>
 
           {/* Toggle between login and signup */}

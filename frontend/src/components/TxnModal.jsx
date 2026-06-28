@@ -50,15 +50,20 @@ export default function TxnModal({ initial, currency, onClose, onSave, onDelete 
   /* Which categories the dropdown offers depends on the chosen type. */
   const cats = form.type === 'expense' ? EXPENSE_CATS : INCOME_CATS
 
-  /* Validate, then hand a clean transaction object back to App.
-     Returning early after setError keeps an invalid entry from saving. */
-  const save = () => {
+  /* Validate, then hand a clean transaction object back to App, which saves it
+     via the API. We await so that if the save fails (e.g. server error) we can
+     show the message and keep the dialog open instead of losing the entry. */
+  const save = async () => {
     const amt = parseFloat(form.amount)
     if (!amt || amt <= 0) return setError('Enter an amount greater than 0.')
     if (!form.date)       return setError('Please choose a date.')
     /* The user typed the amount in the display currency — convert it back to
        base (EUR) so all stored amounts stay in one currency. */
-    onSave({ id: initial.id, amount: toBase(amt, currency), type: form.type, category: form.category, date: form.date, description: form.description })
+    try {
+      await onSave({ id: initial.id, amount: toBase(amt, currency), type: form.type, category: form.category, date: form.date, description: form.description })
+    } catch (err) {
+      setError(err.message || 'Could not save. Please try again.')
+    }
   }
 
   return (
