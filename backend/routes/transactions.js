@@ -66,6 +66,8 @@ router.post('/', async (req, res) => {
 /* PUT /api/transactions/:id — update one of the user's transactions.
    Body: { type, category, amount, date, description? } */
 router.put('/:id', async (req, res) => {
+  // ponytail: integer id check, not a validation lib — a non-numeric id can't match an integer PK.
+  if (!/^\d+$/.test(req.params.id)) return res.status(404).json({ error: 'Transaction not found' });
   const { type, category, amount, date, description } = req.body || {};
   const problem = validate(req.body || {});
   if (problem) return res.status(400).json({ error: problem });
@@ -89,6 +91,7 @@ router.put('/:id', async (req, res) => {
 
 /* DELETE /api/transactions/:id — remove one of the user's transactions. */
 router.delete('/:id', async (req, res) => {
+  if (!/^\d+$/.test(req.params.id)) return res.status(404).json({ error: 'Transaction not found' });
   try {
     const result = await pool.query(
       `DELETE FROM transactions WHERE transaction_id = $1 AND user_id = $2`,
