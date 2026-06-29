@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { isValidEmail, passwordStrength, passwordProblem } from '../validators.js'
 import './AuthScreen.css'
 
 /* ============================================================
@@ -20,9 +21,14 @@ export default function AuthScreen({ mode, brand, onToggle, onSubmit }) {
      promise; if it rejects (bad credentials, email taken, server down) we show
      the message instead of letting the user through. */
   const submit = async () => {
-    if (isSignup && !name.trim()) return setError('Please enter your name.')
-    if (!email.trim())            return setError('Please enter your email.')
-    if (!password)                return setError('Please enter a password.')
+    if (isSignup && !name.trim())     return setError('Please enter your name.')
+    if (!isValidEmail(email))         return setError('Please enter a valid email address.')
+    if (!password)                    return setError('Please enter a password.')
+    // Strength is only enforced on signup; existing logins keep whatever they have.
+    if (isSignup) {
+      const pwProblem = passwordProblem(password)
+      if (pwProblem) return setError(pwProblem)
+    }
     setError('')
     setBusy(true)
     try {
@@ -98,6 +104,22 @@ export default function AuthScreen({ mode, brand, onToggle, onSubmit }) {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
           />
+
+          {/* Strength meter — signup only, once the user starts typing. 4 bars
+              fill and recolour with the score (data-score drives the CSS). */}
+          {isSignup && password && (() => {
+            const { score, label } = passwordStrength(password)
+            return (
+              <div className="pw-strength" data-score={score}>
+                <div className="pw-strength__bars">
+                  {[0, 1, 2, 3].map((i) => (
+                    <span key={i} className={`pw-strength__bar ${i < score ? 'is-on' : ''}`} />
+                  ))}
+                </div>
+                <span className="pw-strength__label">{label}</span>
+              </div>
+            )
+          })()}
 
           {/* Inline validation error */}
           {error && <div className="auth-form__error">{error}</div>}

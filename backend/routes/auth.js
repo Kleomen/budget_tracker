@@ -12,6 +12,20 @@ const TOKEN_TTL = '7d';
 const signToken = (userId) =>
   jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: TOKEN_TTL });
 
+/* Field checks — must mirror frontend/src/validators.js. ponytail: duplicated
+   (separate package, ~6 lines) instead of a shared module; keep them in sync. */
+const isValidEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
+const passwordProblem = (pw) => {
+  if (pw.length < 8) return 'Password must be at least 8 characters';
+  let classes = 0;
+  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) classes++;
+  if (/\d/.test(pw)) classes++;
+  if (/[^A-Za-z0-9]/.test(pw)) classes++;
+  if (pw.length >= 12) classes++;
+  if (classes < 1) return 'Password is too weak';
+  return null;
+};
+
 /* Shape the row we send back to the client — never expose password_hash. */
 const publicUser = (row) => ({
   id: row.user_id,
@@ -29,6 +43,13 @@ router.post('/signup', async (req, res) => {
 
   if (!name || !email || !password) {
     return res.status(400).json({ error: 'name, email and password are required' });
+  }
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: 'Please enter a valid email address' });
+  }
+  const pwProblem = passwordProblem(password);
+  if (pwProblem) {
+    return res.status(400).json({ error: pwProblem });
   }
 
   try {

@@ -216,3 +216,42 @@
     max-width: 100%;
   }
 }
+
+/* ---- Password strength meter (signup) ---- */
+.pw-strength {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: -6px 0 16px;
+}
+
+.pw-strength__bars {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.pw-strength__bar {
+  height: 5px;
+  flex: 1;
+  border-radius: 3px;
+  background: #e4e8f0;
+}
+
+.pw-strength__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #7a8190;
+  min-width: 64px;
+  text-align: right;
+}
+
+.pw-strength[data-score="1"] .pw-strength__bar.is-on { background: #d6453f; }
+.pw-strength[data-score="2"] .pw-strength__bar.is-on { background: #e0852b; }
+.pw-strength[data-score="3"] .pw-strength__bar.is-on { background: #e0b62b; }
+.pw-strength[data-score="4"] .pw-strength__bar.is-on { background: #1f9e6f; }
+
+.pw-strength[data-score="1"] .pw-strength__label { color: #d6453f; }
+.pw-strength[data-score="2"] .pw-strength__label { color: #e0852b; }
+.pw-strength[data-score="3"] .pw-strength__label { color: #b9931f; }
+.pw-strength[data-score="4"] .pw-strength__label { color: #1f9e6f; }
