@@ -131,6 +131,16 @@
   margin-bottom: 16px;
 }
 
+.auth-form__notice {
+  background: #e8f6ef;
+  color: #1f7a55;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
 .auth-form__submit {
   width: 100%;
   padding: 14px;
@@ -141,6 +151,34 @@
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
+}
+
+.auth-form__resend {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  background: none;
+  color: var(--blue);
+  border: 1.5px solid #e4e8f0;
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ---- Email verification landing page (/verify) ---- */
+.verify-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.verify-card {
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
 }
 
 /* ---- Sign-in / Sign-up toggle ---- */

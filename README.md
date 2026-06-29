@@ -12,6 +12,9 @@ viewed in EUR / USD / GBP using live exchange rates.
 
 **Accounts**
 - Email + password signup and login (passwords hashed with bcrypt)
+- Password policy: 8+ chars and at least 3 of lowercase/uppercase/number/symbol
+- Email verification: new accounts must confirm via an emailed link before they
+  can sign in (with a resend option)
 - Sessions persist across page refreshes
 - All data is private per user
 
@@ -96,8 +99,10 @@ Three tables: `users`, `transactions`, `budgets` — all rows are scoped to a
 
 > **Note:** the repo ships migrations, not a full schema dump.
 > `migrations/001_align_categories.sql` aligns the category `CHECK`
-> constraints with the frontend's categories. A fresh database must already
-> have the `users` / `transactions` / `budgets` tables created before running it.
+> constraints with the frontend's categories;
+> `migrations/002_email_verification.sql` adds the `users.email_verified`
+> column. A fresh database must already have the `users` / `transactions` /
+> `budgets` tables created before running them, in order.
 
 ## API reference
 
@@ -107,8 +112,10 @@ All `/api/transactions` and `/api/budgets` routes require an
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET    | `/api/health` | Liveness check |
-| POST   | `/api/auth/signup` | Create account → `{ token, user }` |
-| POST   | `/api/auth/login`  | Log in → `{ token, user }` |
+| POST   | `/api/auth/signup` | Create account, email a verification link → `{ message, email }` |
+| POST   | `/api/auth/login`  | Log in → `{ token, user }` (403 until email verified) |
+| POST   | `/api/auth/verify` | Confirm email from link token → `{ token, user }` |
+| POST   | `/api/auth/resend` | Resend a verification link `{ email }` |
 | GET    | `/api/transactions` | List the user's transactions |
 | POST   | `/api/transactions` | Create a transaction |
 | PUT    | `/api/transactions/:id` | Update a transaction |
@@ -126,6 +133,10 @@ Passwords are hashed with bcrypt; auth tokens are JWTs (7-day expiry).
 - Env vars: `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_ORIGIN` (your Vercel URL,
   e.g. `https://balancer.vercel.app`); Render sets `PORT` automatically. The
   server refuses to start without `JWT_SECRET`.
+- Email (verification links): `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, and
+  optionally `SMTP_PORT` (default 587; 465 = TLS) and `MAIL_FROM`. If these are
+  unset the link is logged to the server console instead of being sent — fine
+  for local dev, but set them in production so users actually get the email.
 - Health check path: `/api/health`
 - Auth endpoints are rate-limited per IP (10 attempts / 15 min).
 

@@ -18,10 +18,12 @@ export const passwordStrength = (pw) => {
   return { score, label: ['Very weak', 'Weak', 'Fair', 'Good', 'Strong'][score] }
 }
 
-/* The accept/reject rule. Returns an error message, or null when the password
-   is acceptable: at least 8 chars and not the weakest tier. */
+/* The accept/reject rule. Returns an error message, or null when acceptable:
+   at least 8 chars and at least 3 of the 4 character classes. Must stay in
+   sync with backend/routes/auth.js passwordProblem (the trust boundary). */
 export const passwordProblem = (pw) => {
   if (pw.length < 8) return 'Password must be at least 8 characters.'
-  if (passwordStrength(pw).score < 2) return 'Password is too weak — mix in capitals, numbers, or symbols.'
+  const classes = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/].filter((re) => re.test(pw)).length
+  if (classes < 3) return 'Use at least 3 of: lowercase, uppercase, number, symbol.'
   return null
 }

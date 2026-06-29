@@ -41,6 +41,7 @@ async function request(path, { method = 'GET', body } = {}) {
   if (!res.ok) {
     const err = new Error(data.error || `Request failed (${res.status})`)
     err.status = res.status
+    err.data = data // expose the body (e.g. { needsVerification: true }) to callers
     throw err
   }
   return data
@@ -49,6 +50,8 @@ async function request(path, { method = 'GET', body } = {}) {
 /* ---- Auth ---- */
 export const signup = (payload) => request('/api/auth/signup', { method: 'POST', body: payload })
 export const login  = (payload) => request('/api/auth/login',  { method: 'POST', body: payload })
+export const verifyEmail        = (token) => request('/api/auth/verify', { method: 'POST', body: { token } })
+export const resendVerification = (email) => request('/api/auth/resend', { method: 'POST', body: { email } })
 
 /* ---- Transactions ---- */
 export const getTransactions   = ()        => request('/api/transactions')

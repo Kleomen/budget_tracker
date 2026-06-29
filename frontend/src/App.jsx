@@ -6,6 +6,7 @@ import {
 } from './data.js'
 import * as api from './api.js'
 import AuthScreen   from './components/AuthScreen.jsx'
+import VerifyEmail  from './components/VerifyEmail.jsx'
 import TxnModal     from './components/TxnModal.jsx'
 import Dashboard    from './components/Dashboard.jsx'
 import Transactions from './components/Transactions.jsx'
@@ -68,15 +69,19 @@ export default function App({ brand = 'Balancer' }) {
      the user. AuthScreen awaits these, so a thrown error (bad password,
      email taken) surfaces as a message on the form.
      ============================================================ */
-  const handleAuth = (fn) => async (creds) => {
-    const { token, user } = await fn(creds)
+  /* Store the token/user and drop into the app. Shared by login and by the
+     email-verification step (which signs the user in on success). */
+  const finishLogin = ({ token, user }) => {
     api.setToken(token)
     localStorage.setItem('user', JSON.stringify(user))
     setUser(user)
     navigate('/dashboard')
   }
-  const handleLogin  = handleAuth(api.login)
-  const handleSignup = handleAuth(api.signup)
+  const handleLogin = async (creds) => finishLogin(await api.login(creds))
+  /* Signup no longer logs in — the user must verify their email first. We just
+     return the response ({ message, email }) so AuthScreen can show the notice. */
+  const handleSignup = (creds) => api.signup(creds)
+  const handleResend = (email) => api.resendVerification(email)
 
   /* Clear everything and return to the login screen. Also used when the server
      tells us our token is no longer valid. */
@@ -277,8 +282,9 @@ export default function App({ brand = 'Balancer' }) {
   if (!user) {
     return (
       <Routes>
-        <Route path="/login"  element={<AuthScreen mode="login"  brand={brand} onToggle={() => navigate('/signup')} onSubmit={handleLogin} />} />
-        <Route path="/signup" element={<AuthScreen mode="signup" brand={brand} onToggle={() => navigate('/login')}  onSubmit={handleSignup} />} />
+        <Route path="/login"  element={<AuthScreen mode="login"  brand={brand} onToggle={() => navigate('/signup')} onSubmit={handleLogin}  onResend={handleResend} />} />
+        <Route path="/signup" element={<AuthScreen mode="signup" brand={brand} onToggle={() => navigate('/login')}  onSubmit={handleSignup} onResend={handleResend} />} />
+        <Route path="/verify" element={<VerifyEmail brand={brand} onVerified={finishLogin} onResend={handleResend} />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     )
