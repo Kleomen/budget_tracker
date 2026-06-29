@@ -1,7 +1,9 @@
 /* Smallest check that the limiter blocks after MAX_ATTEMPTS and resets on a
    new window. Run: node middleware/rateLimit.test.js */
 const assert = require('assert');
-const authLimiter = require('./rateLimit');
+const rateLimiter = require('./rateLimit');
+
+const authLimiter = rateLimiter(10, 15 * 60 * 1000);
 
 const run = (ip, n) => {
   let lastStatus = 200;
