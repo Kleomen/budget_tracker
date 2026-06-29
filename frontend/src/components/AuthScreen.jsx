@@ -8,20 +8,18 @@ import './AuthScreen.css'
    On submit it calls onSubmit (which talks to the backend) and shows
    any error it throws — e.g. "Invalid email or password".
    ============================================================ */
-export default function AuthScreen({ mode, brand, onToggle, onSubmit, onResend }) {
+export default function AuthScreen({ mode, brand, onToggle, onSubmit }) {
   const [name, setName]         = useState('')
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [error, setError]       = useState('')
-  const [notice, setNotice]     = useState('')    // success message (e.g. "check your inbox")
-  const [canResend, setCanResend] = useState(false) // offer a "resend link" button
   const [busy, setBusy]         = useState(false) // true while the request is in flight
 
   const isSignup = mode === 'signup' // Determine if we're in signup mode
 
   /* Client-side validation, then hand off to the parent. onSubmit returns a
-     promise; if it rejects (bad credentials, email taken, server down) we show
-     the message instead of letting the user through. */
+     promise; on success the parent signs the user in and navigates away. If it
+     rejects (bad credentials, email taken, server down) we show the message. */
   const submit = async () => {
     if (isSignup && !name.trim())     return setError('Please enter your name.')
     if (!isValidEmail(email))         return setError('Please enter a valid email address.')
@@ -32,35 +30,11 @@ export default function AuthScreen({ mode, brand, onToggle, onSubmit, onResend }
       if (pwProblem) return setError(pwProblem)
     }
     setError('')
-    setNotice('')
     setBusy(true)
     try {
-      const res = await onSubmit({ name, email, password })
-      // Login navigates away on success; signup stays here and shows a notice
-      // telling the user to go verify their email.
-      if (isSignup) {
-        setNotice(res?.message || 'Account created — check your email to verify your address.')
-        setCanResend(true)
-      }
+      await onSubmit({ name, email, password })
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.')
-      // Login was refused because the email isn't verified — let them resend.
-      if (err.data?.needsVerification) setCanResend(true)
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  /* Re-send the verification email to whatever's in the email field. */
-  const resend = async () => {
-    if (!isValidEmail(email)) return setError('Enter your email above, then resend.')
-    setError('')
-    setBusy(true)
-    try {
-      const res = await onResend(email)
-      setNotice(res?.message || 'Verification link sent — check your inbox.')
-    } catch (err) {
-      setError(err.message || 'Could not resend the link. Please try again.')
     } finally {
       setBusy(false)
     }
@@ -150,21 +124,11 @@ export default function AuthScreen({ mode, brand, onToggle, onSubmit, onResend }
           {/* Inline validation error */}
           {error && <div className="auth-form__error">{error}</div>}
 
-          {/* Success notice (e.g. after signup: "check your inbox") */}
-          {notice && <div className="auth-form__notice">{notice}</div>}
-
           <button className="auth-form__submit" onClick={submit} disabled={busy}>
             {busy
               ? (isSignup ? 'Creating account…' : 'Signing in…')
               : (isSignup ? 'Create account' : 'Sign in')}
           </button>
-
-          {/* Shown after signup, or when login is blocked for an unverified email. */}
-          {canResend && (
-            <button className="auth-form__resend" onClick={resend} disabled={busy}>
-              Resend verification email
-            </button>
-          )}
 
           {/* Toggle between login and signup */}
           <div className="auth-form__toggle">
