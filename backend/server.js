@@ -3,21 +3,32 @@ const express = require('express');
 const cors = require('cors');
 
 const requireAuth = require('./middleware/auth');
+const authLimiter = require('./middleware/rateLimit');
 const authRoutes = require('./routes/auth');
 const transactionRoutes = require('./routes/transactions');
 const budgetRoutes = require('./routes/budgets');
 
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET is not set — refusing to start without it');
+}
+
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors());
+// Behind Render's proxy, so req.ip reflects the real client (X-Forwarded-For)
+// for the auth rate limiter rather than the proxy's address.
+app.set('trust proxy', 1);
+
+// Restrict to the deployed frontend's origin. Unset (local dev) reflects the
+// request origin so the Vite dev server just works; set FRONTEND_ORIGIN in prod.
+app.use(cors({ origin: process.env.FRONTEND_ORIGIN || true }));
 app.use(express.json());
 
 // Simple health check (no auth) so you can verify the server is up.
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
-// Public auth endpoints: signup + login hand out JWTs.
-app.use('/api/auth', authRoutes);
+// Public auth endpoints: signup + login hand out JWTs. Rate-limited per IP.
+app.use('/api/auth', authLimiter, authRoutes);
 
 // Everything below requires a valid "Authorization: Bearer <token>" header
 // and is scoped to the authenticated user.

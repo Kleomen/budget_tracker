@@ -123,8 +123,11 @@ Passwords are hashed with bcrypt; auth tokens are JWTs (7-day expiry).
 **Backend → Render** (web service):
 - Root directory: `backend`
 - Build: `npm install` · Start: `npm start`
-- Env vars: `DATABASE_URL`, `JWT_SECRET` (Render sets `PORT` automatically)
+- Env vars: `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_ORIGIN` (your Vercel URL,
+  e.g. `https://balancer.vercel.app`); Render sets `PORT` automatically. The
+  server refuses to start without `JWT_SECRET`.
 - Health check path: `/api/health`
+- Auth endpoints are rate-limited per IP (10 attempts / 15 min).
 
 **Frontend → Vercel** (static build):
 - Root directory: `frontend`
@@ -133,4 +136,5 @@ Passwords are hashed with bcrypt; auth tokens are JWTs (7-day expiry).
 - `vercel.json` rewrites all paths to `index.html` so refreshing a route
   (e.g. `/dashboard`) doesn't 404.
 
-After deploying, restrict the backend's CORS to your frontend's origin.
+Set `FRONTEND_ORIGIN` on the backend to this Vercel URL so CORS is locked to
+your frontend (it allows all origins only when the var is unset, for local dev).
