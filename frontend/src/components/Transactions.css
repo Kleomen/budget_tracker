@@ -118,6 +118,7 @@
 .txn-row__info  { flex: 1; min-width: 0; }
 .txn-row__title { font-size: 14.5px; font-weight: 600; }
 .txn-row__sub   { font-size: 12px; color: var(--muted); }
+.txn-row__desc  { font-size: 12px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .txn-row__amount {
   font-family: 'Space Grotesk', sans-serif;

@@ -138,8 +138,9 @@ export default function Transactions({ txns, currency, filters, setFilters, onEd
                 {/* Coloured square = the category's colour. */}
                 <span className="txn-row__icon" style={{ background: catColor(r.category) }} />
                 <div className="txn-row__info">
-                  <div className="txn-row__title">{r.description || r.category}</div>
-                  <div className="txn-row__sub">{r.category} · {dateLabel(r.date)}</div>
+                  <div className="txn-row__title">{r.category}</div>
+                  <div className="txn-row__sub">{dateLabel(r.date)}</div>
+                  {r.description && <div className="txn-row__desc">{r.description}</div>}
                 </div>
                 {/* Income shows "+", expense shows "−". */}
                 <span className={`txn-row__amount txn-row__amount--${r.type}`}>
