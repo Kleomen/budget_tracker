@@ -29,7 +29,7 @@
   cursor: pointer;
 }
 
-/* Layout switcher: Balanced / Charts / Compact */
+/* Layout switcher: Charts / Compact */
 .layout-switcher {
   display: flex;
   gap: 2px;
@@ -55,9 +55,8 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
-/* 12-column responsive grid.
-   Individual cards set their own span/order via inline `style` (dynamic
-   layout from layoutStyles()). On mobile those are overridden below. */
+/* 12-column responsive grid. Each widget class below sets its own span;
+   mobile overrides them all to full-width (see the 768px breakpoint). */
 .dash-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
@@ -68,6 +67,8 @@
 /* ============================================================
    KPI cards (Spent / Income / Net / Budget used)
    ============================================================ */
+
+.dash-kpi { grid-column: span 3; }
 
 .kpi-title {
   font-size: 13px;
@@ -129,6 +130,8 @@
 /* ============================================================
    Donut chart (Spending by category)
    ============================================================ */
+
+.dash-donut { grid-column: span 12; }
 
 .donut-title {
   font-family: 'Space Grotesk', sans-serif;
@@ -217,6 +220,8 @@
    Trend chart (Income vs Expense bar chart)
    ============================================================ */
 
+.dash-trend { grid-column: span 12; }
+
 .trend-header {
   display: flex;
   justify-content: space-between;
@@ -303,6 +308,8 @@
    Budget vs Actual summary (mini progress bars per category)
    ============================================================ */
 
+.dash-budgets { grid-column: span 7; }
+
 .budget-card-title {
   font-family: 'Space Grotesk', sans-serif;
   font-weight: 700;
@@ -356,6 +363,8 @@
 /* ============================================================
    Recent activity list
    ============================================================ */
+
+.dash-recent { grid-column: span 5; }
 
 .recent-title {
   font-family: 'Space Grotesk', sans-serif;
@@ -429,10 +438,9 @@
 
 @media (max-width: 768px) {
 
-  /* Override all inline gridColumn / order values set by layoutStyles() */
+  /* Every widget goes full-width on mobile, regardless of its span above. */
   .dash-grid > * {
     grid-column: 1 / -1 !important;
-    order: initial !important;
   }
 
   /* Layout switcher is meaningless when everything stacks */

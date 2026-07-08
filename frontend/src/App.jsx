@@ -37,7 +37,7 @@ export default function App({ brand = 'Balancer' }) {
     return saved && api.getToken() ? JSON.parse(saved) : null
   })
   const [currency, setCurrency] = useState('EUR')           // which currency symbol to display
-  const [layout,   setLayout]   = useState(0)               // dashboard layout preset (0/1/2)
+  const [layout,   setLayout]   = useState('compact')       // dashboard layout preset ('charts' | 'compact')
   const [selectedMonth, setSelectedMonth] = useState(CURRENT_MONTH) // which month the dashboard shows
   const [txns,     setTxns]     = useState([])              // the list of transactions (loaded from the API)
   const [budgets,  setBudgets]  = useState({})              // spending limit per category (loaded from the API)
