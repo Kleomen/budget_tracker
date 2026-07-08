@@ -132,11 +132,6 @@ export const convert = (n, cur) => (Number(n) || 0) * rate(cur)
    so everything stays stored in one currency regardless of what's on screen. */
 export const toBase = (n, cur) => (Number(n) || 0) / rate(cur)
 
-/* The most recent transaction date in the data, e.g. "2026-06-23".
-   We derive it instead of hard-coding so "this month" (below) and the
-   default date for new transactions always follow the actual data. */
-export const LATEST_DATE = SEED_TXNS.reduce((max, t) => (t.date > max ? t.date : max), '')
-
 /* "This month", by the real calendar — what the dashboard defaults to
    and the furthest month users can navigate forward to. */
 export const CURRENT_MONTH = new Date().toISOString().slice(0, 7)

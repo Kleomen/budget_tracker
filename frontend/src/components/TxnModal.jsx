@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { EXPENSE_CATS, INCOME_CATS, LATEST_DATE, sym, convert, toBase } from '../data.js'
+import { EXPENSE_CATS, INCOME_CATS, sym, convert, toBase } from '../data.js'
 import './TxnModal.css'
 
 /* ============================================================
@@ -10,11 +10,8 @@ import './TxnModal.css'
    On save/delete it calls the handlers App passed in.
    ============================================================ */
 
-/* Default date for a brand-new transaction. We use the latest date in the data
-   (which is inside the dashboard's "current month") rather than the real
-   calendar date, so a freshly added transaction shows up in the dashboard
-   totals instead of silently landing in a month nothing else counts. */
-const DEFAULT_DATE = LATEST_DATE
+/* Default date for a brand-new transaction: today. */
+const DEFAULT_DATE = new Date().toISOString().slice(0, 10)
 
 /* Round to 2 decimals so a converted amount shows cleanly in the input. */
 const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100
