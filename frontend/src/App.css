@@ -207,11 +207,9 @@
   line-height: 1;
 }
 
-/* User avatar circle + logout */
-.user-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+/* User avatar + its profile dropdown (name, email, log out) */
+.profile-menu {
+  position: relative;
 }
 
 .user-avatar {
@@ -225,9 +223,38 @@
   justify-content: center;
   font-weight: 700;
   flex-shrink: 0;
+  border: none;
+  cursor: pointer;
 }
 
-.logout-btn {
+.profile-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: #fff;
+  border: 1px solid #e4e8f0;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 14px;
+  min-width: 200px;
+  z-index: 20;
+}
+
+.profile-dropdown__name {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.profile-dropdown__email {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 2px;
+  overflow-wrap: break-word;
+}
+
+.profile-dropdown__logout {
+  width: 100%;
   background: none;
   border: 1px solid #e4e8f0;
   padding: 8px 12px;
@@ -236,7 +263,7 @@
   font-size: 13px;
   font-weight: 600;
   color: var(--muted);
-  white-space: nowrap;
+  margin-top: 12px;
 }
 
 /* Scrollable page content area */
@@ -354,11 +381,6 @@
     font-size: 13px;
   }
 
-  .logout-btn {
-    padding: 7px 10px;
-    font-size: 12px;
-  }
-
   /* Page content gets side padding cut, and bottom padding for the nav bar */
   .app-content {
     padding: 16px;
@@ -378,11 +400,6 @@
 
   .add-txn-btn {
     padding: 10px 14px;
-  }
-
-  /* Logout button is redundant at this size — avatar tap can handle it */
-  .logout-btn {
-    display: none;
   }
 
   .app-header__title { font-size: 16px; }

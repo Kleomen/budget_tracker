@@ -44,6 +44,8 @@ export default function App({ brand = 'Balancer' }) {
   const [modal,    setModal]    = useState(null)            // add/edit popup: null = closed, {} = add, {…} = edit
   const [filters,  setFilters]  = useState(FILTER_DEFAULTS) // active filters on the Transactions page
   const [, setRatesV]           = useState(0)               // bumped to re-render once live rates load
+  const [profileOpen, setProfileOpen] = useState(false)      // is the avatar's profile dropdown open?
+  const profileRef = useRef(null)
 
   /* JSON of the last budgets we successfully saved, so the auto-save effect below
      can skip redundant PUTs (including the very first load). */
@@ -52,6 +54,14 @@ export default function App({ brand = 'Balancer' }) {
   /* react-router hooks: navigate() changes the URL, location tells us the current URL. */
   const navigate = useNavigate()
   const location = useLocation()
+
+  /* Close the profile dropdown on a click outside it. */
+  useEffect(() => {
+    if (!profileOpen) return
+    const onClick = (e) => { if (!profileRef.current?.contains(e.target)) setProfileOpen(false) }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [profileOpen])
 
   /* Pull current exchange rates once on load. They live in a module variable
      (used by the fmt/convert helpers), so on success we bump a counter to
@@ -367,12 +377,21 @@ export default function App({ brand = 'Balancer' }) {
               <span className="add-txn-btn__text">Add transaction</span>
             </button>
 
-            <div className="user-controls">
-              <div className="user-avatar">{userInitial}</div>
-              {/* Logging out clears the token + user and sends them back to /login. */}
-              <button className="logout-btn" onClick={handleLogout}>
-                Log out
+            {/* Avatar opens a dropdown with the user's profile info + log out. */}
+            <div className="profile-menu" ref={profileRef}>
+              <button className="user-avatar" onClick={() => setProfileOpen((o) => !o)}>
+                {userInitial}
               </button>
+              {profileOpen && (
+                <div className="profile-dropdown">
+                  <div className="profile-dropdown__name">{user?.name || 'Account'}</div>
+                  <div className="profile-dropdown__email">{user?.email}</div>
+                  {/* Logging out clears the token + user and sends them back to /login. */}
+                  <button className="profile-dropdown__logout" onClick={handleLogout}>
+                    Log out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
