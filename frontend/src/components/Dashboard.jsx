@@ -1,4 +1,4 @@
-import { fmt, fmtSigned, catColor, monthName, CURRENT_MONTH } from '../data.js'
+import { fmt, fmtSigned, catColor, monthName } from '../data.js'
 import Card from './Card.jsx'
 import BudgetBar from './BudgetBar.jsx'
 import './Dashboard.css'
@@ -34,7 +34,7 @@ function layoutStyles(L) {
   )
 }
 
-export default function Dashboard({ metrics, currency, layout, setLayout, onEdit }) {
+export default function Dashboard({ metrics, currency, layout, setLayout, onEdit, selectedMonth, setSelectedMonth, availableMonths }) {
   /* Pull the pieces we need out of the metrics object App passed in. */
   const {
     totalSpent, totalIncome, net,
@@ -61,7 +61,18 @@ export default function Dashboard({ metrics, currency, layout, setLayout, onEdit
     <>
       {/* ---- Top bar: month label + the layout switcher buttons ---- */}
       <div className="dash-header">
-        <div className="dash-month">Overview for {monthName(CURRENT_MONTH)}</div>
+        <div className="dash-month">
+          Overview for{' '}
+          <select
+            className="dash-month-select"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+          >
+            {availableMonths.map((m) => (
+              <option key={m} value={m}>{monthName(m)}</option>
+            ))}
+          </select>
+        </div>
         <div className="layout-switcher">
           {LAYOUTS.map((label, i) => (
             <button

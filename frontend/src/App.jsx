@@ -38,6 +38,7 @@ export default function App({ brand = 'Balancer' }) {
   })
   const [currency, setCurrency] = useState('EUR')           // which currency symbol to display
   const [layout,   setLayout]   = useState(0)               // dashboard layout preset (0/1/2)
+  const [selectedMonth, setSelectedMonth] = useState(CURRENT_MONTH) // which month the dashboard shows
   const [txns,     setTxns]     = useState([])              // the list of transactions (loaded from the API)
   const [budgets,  setBudgets]  = useState({})              // spending limit per category (loaded from the API)
   const [modal,    setModal]    = useState(null)            // add/edit popup: null = closed, {} = add, {…} = edit
@@ -146,8 +147,8 @@ export default function App({ brand = 'Balancer' }) {
     const sum     = (arr)  => arr.reduce((a, t) => a + t.amount, 0)
 
     /* This month's expenses and income, and the headline totals. */
-    const tmExp = txns.filter((t) => t.type === 'expense' && inMonth(t, CURRENT_MONTH))
-    const tmInc = txns.filter((t) => t.type === 'income'  && inMonth(t, CURRENT_MONTH))
+    const tmExp = txns.filter((t) => t.type === 'expense' && inMonth(t, selectedMonth))
+    const tmInc = txns.filter((t) => t.type === 'income'  && inMonth(t, selectedMonth))
     const totalSpent  = sum(tmExp)
     const totalIncome = sum(tmInc)
     const net         = totalIncome - totalSpent  // positive = saved money, negative = overspent
@@ -182,9 +183,9 @@ export default function App({ brand = 'Balancer' }) {
       pctLabel: (totalSpent > 0 ? Math.round((b.amount / totalSpent) * 100) : 0) + '%',
     }))
 
-    /* ---- Trend chart: income vs expense for the 6 months ending at CURRENT_MONTH ---- */
+    /* ---- Trend chart: income vs expense for the 6 months ending at selectedMonth ---- */
     /* Derived from the data so it stays in step with the rest of the app. */
-    const months = lastMonths(CURRENT_MONTH, 6)
+    const months = lastMonths(selectedMonth, 6)
     /* Total up each month in ONE pass over txns instead of scanning the list
        once per month. bucket["2026-06"] = { e: expenses, i: income }. */
     const bucket = {}
@@ -206,7 +207,7 @@ export default function App({ brand = 'Balancer' }) {
     const recent = [...txns].sort(byNewest).slice(0, 6)
 
     return { byCat, totalSpent, totalIncome, net, legend, donutGradient, trend, recent }
-  }, [txns])
+  }, [txns, selectedMonth])
 
   /* ---- Budget numbers: depend on the per-category spend (from txnMetrics) and the limits ---- */
   const budgetMetrics = useMemo(() => {
@@ -230,6 +231,15 @@ export default function App({ brand = 'Balancer' }) {
 
   /* Merge the two into the single `metrics` object the pages read from. */
   const metrics = useMemo(() => ({ ...txnMetrics, ...budgetMetrics }), [txnMetrics, budgetMetrics])
+
+  /* Months the dashboard's month picker can show: every month that has at least
+     one transaction, plus the real current month (always available even if
+     empty), newest first. */
+  const availableMonths = useMemo(() => {
+    const months = new Set(txns.map((t) => t.date.slice(0, 7)))
+    months.add(CURRENT_MONTH)
+    return [...months].sort().reverse()
+  }, [txns])
 
   /* ============================================================
      Handlers that change the transaction list. The modal calls these.
@@ -318,7 +328,7 @@ export default function App({ brand = 'Balancer' }) {
 
         {/* Little "budget used this month" progress widget pinned to the bottom. */}
         <div className="sidebar__widget">
-          <div className="sidebar__widget-label">Budget used · {monthName(CURRENT_MONTH)}</div>
+          <div className="sidebar__widget-label">Budget used · {monthName(selectedMonth)}</div>
           <div className="sidebar__widget-value">{Math.round(budgetUsedPct)}%</div>
           <div className="sidebar__widget-track">
             <div className="sidebar__widget-fill" style={{ width: `${budgetUsedPct}%` }} />
@@ -334,7 +344,7 @@ export default function App({ brand = 'Balancer' }) {
         <header className="app-header">
           <div>
             <h1 className="app-header__title">{pageTitle}</h1>
-            <div className="app-header__subtitle">{monthName(CURRENT_MONTH)}</div>
+            <div className="app-header__subtitle">{monthName(selectedMonth)}</div>
           </div>
 
           <div className="app-header__controls">
@@ -373,7 +383,7 @@ export default function App({ brand = 'Balancer' }) {
           <Routes>
             {/* "/" has no page of its own, so redirect it to the dashboard. */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard"    element={<Dashboard metrics={metrics} currency={currency} layout={layout} setLayout={setLayout} onEdit={openEdit} />} />
+            <Route path="/dashboard"    element={<Dashboard metrics={metrics} currency={currency} layout={layout} setLayout={setLayout} onEdit={openEdit} selectedMonth={selectedMonth} setSelectedMonth={setSelectedMonth} availableMonths={availableMonths} />} />
             <Route path="/transactions" element={<Transactions txns={txns} currency={currency} filters={filters} setFilters={setFilters} onEdit={openEdit} onDelete={deleteTxn} />} />
             <Route path="/budgets"      element={<Budgets metrics={metrics} budgets={budgets} setBudgets={setBudgets} currency={currency} />} />
             {/* Any unknown URL falls back to the dashboard. */}

@@ -137,10 +137,9 @@ export const toBase = (n, cur) => (Number(n) || 0) / rate(cur)
    default date for new transactions always follow the actual data. */
 export const LATEST_DATE = SEED_TXNS.reduce((max, t) => (t.date > max ? t.date : max), '')
 
-/* The month the dashboard treats as "this month" — the month of the most
-   recent transaction. Derived from LATEST_DATE so new transactions added
-   in that month show up in the dashboard totals. */
-export const CURRENT_MONTH = LATEST_DATE.slice(0, 7)
+/* "This month", by the real calendar — what the dashboard defaults to
+   and the furthest month users can navigate forward to. */
+export const CURRENT_MONTH = new Date().toISOString().slice(0, 7)
 
 /* ---- Small formatting helpers used all over the UI ---- */
 
@@ -171,6 +170,13 @@ export const monthName = (key) => { const p = key.split('-'); return MN[+p[1] - 
 
 /* "2026-06-24" -> "24 Jun 2026". */
 export const dateLabel = (d) => { const p = d.split('-'); return +p[2] + ' ' + SN[+p[1] - 1] + ' ' + p[0] }
+
+/* "2026-06" shifted by `delta` months, e.g. shiftMonth('2026-06', -1) -> '2026-05'. */
+export const shiftMonth = (key, delta) => {
+  const [y, m] = key.split('-').map(Number)
+  const d = new Date(y, m - 1 + delta, 1)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
 
 /* The `count` months ending at (and including) `endKey` ("YYYY-MM"), oldest first.
    e.g. lastMonths('2026-06', 6) -> ['2026-01','2026-02',...,'2026-06'].
