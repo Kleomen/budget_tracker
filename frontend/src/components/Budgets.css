@@ -38,9 +38,57 @@
 .budget-item {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   padding: 16px 0;
   border-bottom: 1px solid #f2f4fa;
+}
+
+/* Drag handle — grab and drop a row onto another to reorder */
+.budget-item__drag-handle {
+  color: #c3c9d6;
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.budget-item__drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Delete-category button */
+.budget-item__remove-btn {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 2px;
+}
+
+.budget-item__remove-btn:hover {
+  color: var(--red);
+}
+
+/* "Add a budget category" picker, shown below the list */
+.budget-add-row {
+  padding-top: 14px;
+}
+
+.budget-add-row__select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px dashed #d5dae5;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
 }
 
 /* Coloured dot — background set inline (category colour) */
@@ -71,7 +119,13 @@
   min-width: 0;
 }
 
-.budget-item__name { font-size: 15px; font-weight: 600; }
+.budget-item__name {
+  font-size: 15px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* Red "OVER" pill */
 .budget-item__over-tag {

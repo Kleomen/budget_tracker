@@ -1,7 +1,98 @@
-import { fmt, sym, monthName, CURRENT_MONTH, convert, toBase } from '../data.js'
+import { useState, useEffect } from 'react'
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { fmt, sym, monthName, CURRENT_MONTH, convert, toBase, EXPENSE_CATS } from '../data.js'
 import Card from './Card.jsx'
 import BudgetBar from './BudgetBar.jsx'
 import './Budgets.css'
+
+/* Which categories the user tracks, and in what order. Saved in localStorage
+   (not the API) since it's just a display preference, not budget data itself —
+   the limits underneath still live on the server as usual.
+   ponytail: localStorage, move to the API if this needs to sync across devices. */
+const ORDER_KEY = 'budgetCatOrder'
+const loadOrder = () => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(ORDER_KEY))
+    if (Array.isArray(saved)) return saved.filter((c) => EXPENSE_CATS.includes(c))
+  } catch { /* ignore malformed storage */ }
+  return [...EXPENSE_CATS]
+}
+
+/* One draggable row. Split out because useSortable's per-item hook has to run
+   inside the sorted list, not the parent. */
+function BudgetRow({ b, f, currency, limitInCurrency, updateLimit, removeCat }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: b.name })
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <div ref={setNodeRef} style={style} className="budget-item">
+
+      {/* Drag handle */}
+      <span
+        className="budget-item__drag-handle"
+        aria-label={`Drag to reorder ${b.name}`}
+        {...attributes}
+        {...listeners}
+      >
+        ⠿
+      </span>
+
+      {/* Category colour dot */}
+      <span className="budget-item__dot" style={{ background: b.color }} />
+
+      <div className="budget-item__body">
+        {/* Name row + "OVER" tag + remaining amount */}
+        <div className="budget-item__name-row">
+          <div className="budget-item__name-left">
+            <span className="budget-item__name">{b.name}</span>
+            {b.over && <span className="budget-item__over-tag">OVER</span>}
+          </div>
+          {/* With no limit set (cleared/0) show "No limit" rather than
+              misreporting all spending as "over". */}
+          <span className={`budget-item__remaining budget-item__remaining--${b.over ? 'over' : 'ok'}`}>
+            {b.limit <= 0
+              ? 'No limit'
+              : b.limit - b.spent >= 0
+                ? `${f(b.limit - b.spent)} left`
+                : `${f(b.spent - b.limit)} over`}
+          </span>
+        </div>
+
+        {/* Progress bar — turns red when over budget */}
+        <BudgetBar pct={b.pct} over={b.over} color={b.color} />
+
+        <div className="budget-item__details">
+          {b.limit > 0 ? `${f(b.spent)} spent of ${f(b.limit)}` : `${f(b.spent)} spent`}
+        </div>
+      </div>
+
+      {/* Inline number input for changing the limit */}
+      <div className="budget-item__input-group">
+        <span className="budget-item__currency">{sym(currency)}</span>
+        <input
+          type="number"
+          className="budget-item__input"
+          value={limitInCurrency(b.name)}
+          onChange={(e) => updateLimit(b.name, e.target.value)}
+        />
+      </div>
+
+      <button
+        className="budget-item__remove-btn"
+        onClick={() => removeCat(b.name)}
+        aria-label={`Remove ${b.name}`}
+      >
+        ×
+      </button>
+    </div>
+  )
+}
 
 /* ============================================================
    Budgets
@@ -11,6 +102,10 @@ import './Budgets.css'
 export default function Budgets({ metrics, budgets, setBudgets, currency }) {
   const f = (n) => fmt(n, currency)
   const { budgetStatus, totalBudget, totalSpent, budgetUsedPct, overCount } = metrics
+
+  /* The ordered list of categories the user has chosen to track. */
+  const [order, setOrder] = useState(loadOrder)
+  useEffect(() => { localStorage.setItem(ORDER_KEY, JSON.stringify(order)) }, [order])
 
   /* Limits are STORED in base currency (EUR) but edited in the currency the
      user is viewing, so convert each direction. round2 keeps the displayed
@@ -25,6 +120,26 @@ export default function Budgets({ metrics, budgets, setBudgets, currency }) {
       [name]: raw === '' ? '' : toBase(Number(raw), currency),
     }))
 
+  /* Drop a category from the tracked list and clear its limit. */
+  const removeCat = (name) => {
+    setOrder((o) => o.filter((c) => c !== name))
+    updateLimit(name, '')
+  }
+  /* Add a previously-removed category back, at the end of the list. */
+  const addCat = (name) => { if (name) setOrder((o) => [...o, name]) }
+
+  /* Drag-and-drop reordering, via dnd-kit. A pointer sensor with a small
+     activation distance avoids swallowing plain clicks on the handle. */
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
+  const handleDragEnd = ({ active, over }) => {
+    if (!over || active.id === over.id) return
+    setOrder((o) => arrayMove(o, o.indexOf(active.id), o.indexOf(over.id)))
+  }
+
+  const byName = Object.fromEntries(budgetStatus.map((b) => [b.name, b]))
+  const visibleStatus = order.map((name) => byName[name]).filter(Boolean)
+  const hiddenCats = EXPENSE_CATS.filter((c) => !order.includes(c))
+
   return (
     <div className="budgets-grid">
 
@@ -35,50 +150,35 @@ export default function Budgets({ metrics, budgets, setBudgets, currency }) {
           Set a limit per category. Spending is tracked against {monthName(CURRENT_MONTH)}.
         </div>
 
-        {budgetStatus.map((b) => (
-          <div key={b.name} className="budget-item">
-
-            {/* Category colour dot */}
-            <span className="budget-item__dot" style={{ background: b.color }} />
-
-            <div className="budget-item__body">
-              {/* Name row + "OVER" tag + remaining amount */}
-              <div className="budget-item__name-row">
-                <div className="budget-item__name-left">
-                  <span className="budget-item__name">{b.name}</span>
-                  {b.over && <span className="budget-item__over-tag">OVER</span>}
-                </div>
-                {/* With no limit set (cleared/0) show "No limit" rather than
-                    misreporting all spending as "over". */}
-                <span className={`budget-item__remaining budget-item__remaining--${b.over ? 'over' : 'ok'}`}>
-                  {b.limit <= 0
-                    ? 'No limit'
-                    : b.limit - b.spent >= 0
-                      ? `${f(b.limit - b.spent)} left`
-                      : `${f(b.spent - b.limit)} over`}
-                </span>
-              </div>
-
-              {/* Progress bar — turns red when over budget */}
-              <BudgetBar pct={b.pct} over={b.over} color={b.color} />
-
-              <div className="budget-item__details">
-                {b.limit > 0 ? `${f(b.spent)} spent of ${f(b.limit)}` : `${f(b.spent)} spent`}
-              </div>
-            </div>
-
-            {/* Inline number input for changing the limit */}
-            <div className="budget-item__input-group">
-              <span className="budget-item__currency">{sym(currency)}</span>
-              <input
-                type="number"
-                className="budget-item__input"
-                value={limitInCurrency(b.name)}
-                onChange={(e) => updateLimit(b.name, e.target.value)}
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={order} strategy={verticalListSortingStrategy}>
+            {visibleStatus.map((b) => (
+              <BudgetRow
+                key={b.name}
+                b={b}
+                f={f}
+                currency={currency}
+                limitInCurrency={limitInCurrency}
+                updateLimit={updateLimit}
+                removeCat={removeCat}
               />
-            </div>
+            ))}
+          </SortableContext>
+        </DndContext>
+
+        {/* Add back a category the user removed */}
+        {hiddenCats.length > 0 && (
+          <div className="budget-add-row">
+            <select
+              className="budget-add-row__select"
+              value=""
+              onChange={(e) => addCat(e.target.value)}
+            >
+              <option value="" disabled>+ Add a budget category…</option>
+              {hiddenCats.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
           </div>
-        ))}
+        )}
       </Card>
 
       {/* ---- Right sidebar ---- */}
