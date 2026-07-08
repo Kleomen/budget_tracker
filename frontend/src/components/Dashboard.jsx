@@ -96,7 +96,8 @@ export default function Dashboard({ metrics, currency, layout, setLayout, onEdit
             {/* ---- Budget vs actual: a mini progress bar per category ---- */}
             <Card className="dash-budgets">
               <div className="budget-card-title">Budget vs actual</div>
-              {budgetStatus.map((b) => (
+              {/* Only categories the user actually tracks: a limit set, or spending this month. */}
+              {budgetStatus.filter((b) => b.limit > 0 || b.spent > 0).map((b) => (
                 <div key={b.name} className="budget-row">
                   <div className="budget-row__header">
                     <div className="budget-row__left">
